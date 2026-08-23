@@ -9,20 +9,12 @@
 main{max-width:850px;margin:auto;padding:16px}.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #0001}
 h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#666}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 label{font-size:13px;color:#555;display:block;margin-bottom:5px}input,select,button{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff}
-button{background:#111;color:#fff;border:0;margin-top:8px;cursor:pointer;font-weight:600}.secondary{background:#666;color:#fff}.danger{background:#a33;color:#fff}.ok{background:#176b3a;color:#fff}
+button{background:#111;color:#fff;border:0;margin-top:8px}.secondary{background:#666}.danger{background:#a33}.ok{background:#176b3a}
 video{width:100%;background:#000;border-radius:14px;max-height:55vh}canvas{width:100%;background:#fff;border-radius:12px}
 .metric{background:#f1f2f6;border-radius:12px;padding:12px}.metric span{display:block;color:#666;font-size:13px}.metric b{font-size:23px}
 #log{white-space:pre-wrap;font-size:13px;color:#555}.small{font-size:12px;color:#777;line-height:1.5}
 table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #eee;padding:8px;text-align:left}
-.badge{display:inline-block;padding:6px 12px;border-radius:20px;background:#eee;font-weight:bold;font-size:14px;margin-top:6px}
-.badge-0{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
-.badge-1{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
-.badge-2{background:#fff8e1;color:#f57f17;border:1px solid #ffe082}
-.badge-3{background:#ffe0b2;color:#e65100;border:1px solid #ffcc80}
-.badge-4{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
-.reference-table{width:100%;margin-top:10px;font-size:12px;border:1px solid #eee;border-radius:8px;overflow:hidden}
-.reference-table th{background:#f8f9fa;color:#444}
-.reference-table td,.reference-table th{padding:6px 10px}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#eee}
 @media(max-width:600px){.row,.row3{grid-template-columns:1fr 1fr}.row3 div:last-child{grid-column:1/-1}}
 </style>
 </head>
@@ -30,7 +22,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px
 <main>
 <div class="card">
 <h1>凹陷性水肿数字化检测系统</h1>
-<div class="sub">论文实验版 ｜ 视频图像分析 ｜ 临床辅助分级算法</div>
+<div class="sub">论文实验版｜视频图像分析｜本地计算</div>
 </div>
 
 <div class="card">
@@ -54,13 +46,12 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px
 </div>
 
 <div class="card">
-<h3>三、ROI 设置与环境校准</h3>
+<h3>三、ROI 设置</h3>
 <div class="row">
 <div><label>ROI 模式</label><select id="roiMode"><option value="auto">自动定位（多帧方差）</option><option value="manual">手动定位（触屏点选）</option></select></div>
 <div><label>ROI 半径比例</label><input id="roiRatio" type="number" step="0.01" value="0.08"></div>
-<div><label>背景扣除（抗光照抖动）</label><select id="bgSub"><option value="on">开启相对灰度差计算 (ΔGray)</option><option value="off">关闭（使用绝对灰度）</option></select></div>
 </div>
-<p class="small">自动模式按照原算法：多帧灰度图→像素方差→寻找变化最大的区域。开启背景扣除可有效抵消环境光变化与全图闪烁。</p>
+<p class="small">自动模式按照原算法：多帧灰度图→像素方差→寻找变化最大的区域。手动模式可在视频画面上点选凹陷中心。</p>
 <button id="selectRoi" class="secondary">选择 / 更新 ROI</button>
 <canvas id="roiCanvas" width="900" height="520"></canvas>
 </div>
@@ -78,50 +69,50 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px
 </div>
 
 <div class="card">
-<h3>五、开始分析</h3>
+<h3>五、临床标定与抗干扰设置</h3>
+<div class="row">
+<div><label>已知标尺长度（mm，可选）</label><input id="scaleMm" type="number" step="0.1" placeholder="如 10"></div>
+<div><label>标尺像素长度（px，可选）</label><input id="scalePx" type="number" step="0.1" placeholder="可后续加入自动标定"></div>
+</div>
+<div class="row">
+<div><label>时间滤波</label><select id="temporalFilter"><option value="median3">3帧中值（推荐）</option><option value="none">关闭</option></select></div>
+<div><label>光照归一化</label><select id="illum"><option value="annulus">ROI-环形背景归一化（推荐）</option><option value="none">关闭</option></select></div>
+</div>
+<p class="small">新增鲁棒预处理用于降低手机自动曝光、白平衡、阴影和色差影响；核心 3σ→移动平均→4阶拟合→Gaussian→峰值/过零点流程保持不变。</p>
+</div>
+
+<div class="card">
+<h3>六、开始分析</h3>
 <button id="analyze">开始完整分析</button>
 <button id="stop" class="danger">停止</button>
 <div id="log">等待分析。</div>
 </div>
 
 <div class="card">
-<h3>六、主要结果与临床分级</h3>
+<h3>七、主要结果</h3>
 <div class="row3">
 <div class="metric"><span>恢复起点 / 峰值时间</span><b id="peak">—</b> s</div>
 <div class="metric"><span>过零点时间</span><b id="zero">—</b> s</div>
 <div class="metric"><span>凹陷恢复耗时 PRT</span><b id="prt">—</b> s</div>
 </div>
-<div style="margin-top:15px;">
-  <span>临床参考分级诊断：</span><br>
-  <div id="level" class="badge">未分析</div>
-</div>
-
-<div style="margin-top:15px;">
-  <p class="small"><b>临床分级对照参考表（根据恢复时间 PRT）：</b></p>
-  <table class="reference-table">
-    <thead>
-      <tr><th>等级</th><th>水肿程度</th><th>临床描述</th><th>PRT 时间区间</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>0 级</td><td>正常 / 无水肿</td><td>按压无凹陷或立即复原</td><td>PRT &le; 1.0 s</td></tr>
-      <tr><td>1 级 (1+)</td><td>轻度水肿</td><td>轻微凹陷，快速恢复</td><td>1.0 s &lt; PRT &le; 10.0 s</td></tr>
-      <tr><td>2 级 (2+)</td><td>中度水肿</td><td>凹陷较深，数秒内恢复</td><td>10.0 s &lt; PRT &le; 15.0 s</td></tr>
-      <tr><td>3 级 (3+)</td><td>重度水肿</td><td>凹陷明显，恢复缓慢</td><td>15.0 s &lt; PRT &le; 60.0 s</td></tr>
-      <tr><td>4 级 (4+)</td><td>极重度水肿</td><td>凹陷极深，恢复极为缓慢</td><td>PRT &gt; 60.0 s</td></tr>
-    </tbody>
-  </table>
+<p>临床参考评级：<span id="level" class="badge">未分析</span></p>
+<p class="small"><b>重要：</b>这是研究候选标签，不是独立诊断。传统 1+–4+ 分级通常同时考虑凹陷深度和恢复时间；没有可靠毫米标定时，本程序只给出基于 PRT 的“时间参考等级”。临床使用前必须用伦理审批的人体数据建立并验证阈值。</p>
+<div class="row3">
+<div class="metric"><span>最大相对凹陷指标</span><b id="depthIdx">—</b></div>
+<div class="metric"><span>采样稳定性</span><b id="stability">—</b></div>
+<div class="metric"><span>有效采样点</span><b id="npoints">—</b></div>
 </div>
 </div>
 
 <div class="card">
-<h3>七、恢复曲线</h3>
+<h3>八、恢复曲线</h3>
 <canvas id="plot" width="900" height="480"></canvas>
-<p class="small">红点：恢复起点（灰度差峰值）；绿点：算法检测到的过零点。学术实验中建议将 PRT 作为主要连续变量，同时结合临床分级参考表进行诊断。</p>
+<p class="small">红点：恢复起点（灰度差峰值）；绿点：算法检测到的过零点。论文中建议将 PRT 作为主要连续变量，不直接把固定秒数称为临床诊断分级。</p>
 </div>
 
 <div class="card">
-<h3>八、实验结果记录</h3>
-<table><thead><tr><th>编号</th><th>组别</th><th>注液量</th><th>压力</th><th>按压</th><th>PRT(s)</th><th>临床分级</th><th>时间</th></tr></thead><tbody id="results"></tbody></table>
+<h3>九、实验结果记录</h3>
+<table><thead><tr><th>编号</th><th>组别</th><th>注液量</th><th>压力</th><th>按压</th><th>PRT(s)</th><th>评级</th><th>时间</th></tr></thead><tbody id="results"></tbody></table>
 <button id="csv" class="ok">导出 CSV</button>
 <button id="png" class="secondary">导出曲线 PNG</button>
 <button id="clear" class="danger">清空本机记录</button>
@@ -145,38 +136,23 @@ function drawVideoFrame(canvas, source, boxW=900){
   canvas.getContext("2d").drawImage(source,0,0,canvas.width,canvas.height);
 }
 async function seek(t){video.currentTime=Math.max(0,Math.min(video.duration-0.001,t));await new Promise(r=>video.addEventListener("seeked",r,{once:true}));}
-
-// 增加背景灰度计算（用于相对灰度补偿）
-function sampleGray(cx,cy,r, useBgSub=false){
-  let im=ctx.getImageData(0,0,work.width,work.height).data,s=0,n=0;
-  let x0=Math.max(0,Math.floor(cx-r)),x1=Math.min(work.width,Math.ceil(cx+r)),y0=Math.max(0,Math.floor(cy-r)),y1=Math.min(work.height,Math.ceil(cy+r));
-  for(let y=y0;y<y1;y+=2)for(let x=x0;x<x1;x+=2)if((x-cx)**2+(y-cy)**2<=r*r){let k=(y*work.width+x)*4;s+=.299*im[k]+.587*im[k+1]+.114*im[k+2];n++;}
-  let roiGray = s/n;
-
-  if(!useBgSub) return roiGray;
-
-  // 采样 ROI 外围环形背景灰度（防止局部光照影响）
-  let bgS=0, bgN=0, bgR0=r*1.5, bgR1=r*2.2;
-  let bx0=Math.max(0,Math.floor(cx-bgR1)),bx1=Math.min(work.width,Math.ceil(cx+bgR1)),by0=Math.max(0,Math.floor(cy-bgR1)),by1=Math.min(work.height,Math.ceil(cy+bgR1));
-  for(let y=by0;y<by1;y+=3)for(let x=bx0;x<bx1;x+=3){
-    let distSq = (x-cx)**2+(y-cy)**2;
-    if(distSq >= bgR0*bgR0 && distSq <= bgR1*bgR1){
-      let k=(y*work.width+x)*4;bgS+=.299*im[k]+.587*im[k+1]+.114*im[k+2];bgN++;
-    }
+function rgbToL(r,g,b){return 0.2126*r+0.7152*g+0.0722*b;}
+function sampleSignal(cx,cy,r){
+  let im=ctx.getImageData(0,0,work.width,work.height).data,vals=[],bg=[];
+  let ai=r*1.35,ao=r*1.8;
+  let x0=Math.max(0,Math.floor(cx-ao)),x1=Math.min(work.width,Math.ceil(cx+ao));
+  let y0=Math.max(0,Math.floor(cy-ao)),y1=Math.min(work.height,Math.ceil(cy+ao));
+  for(let y=y0;y<y1;y+=2)for(let x=x0;x<x1;x+=2){
+    let d=Math.hypot(x-cx,y-cy),k=(y*work.width+x)*4,L=rgbToL(im[k],im[k+1],im[k+2]);
+    if(d<=r)vals.push(L); else if(d>=ai&&d<=ao)bg.push(L);
   }
-  let bgGray = bgN > 0 ? bgS/bgN : roiGray;
-  return roiGray - bgGray; // 返回相对灰度差 ΔGray
+  vals.sort((a,b)=>a-b);bg.sort((a,b)=>a-b);
+  function trim(a){let q=Math.floor(a.length*.1);return a.slice(q,Math.max(q+1,a.length-q));}
+  let v=trim(vals),b=trim(bg);
+  let rv=v.reduce((a,x)=>a+x,0)/Math.max(1,v.length);
+  let rb=b.reduce((a,x)=>a+x,0)/Math.max(1,b.length);
+  return $("illum").value==="annulus" ? rv-rb : rv;
 }
-
-// 临床水肿分级判定函数
-function getEdemaGrade(prt) {
-  if (prt <= 1.0) return { grade: "0级", label: "0级 (正常/无水肿)", class: "badge-0" };
-  if (prt <= 10.0) return { grade: "1+", label: "1级 (1+ 轻度水肿)", class: "badge-1" };
-  if (prt <= 15.0) return { grade: "2+", label: "2级 (2+ 中度水肿)", class: "badge-2" };
-  if (prt <= 60.0) return { grade: "3+", label: "3级 (3+ 重度水肿)", class: "badge-3" };
-  return { grade: "4+", label: "4级 (4+ 极重度水肿)", class: "badge-4" };
-}
-
 function movingAvg(a,w){let o=[];for(let i=0;i<a.length;i++){let s=Math.max(0,i-Math.floor(w/2)),e=Math.min(a.length,i+Math.ceil(w/2));o.push(a.slice(s,e).reduce((x,y)=>x+y,0)/(e-s));}return o;}
 function polyfit(x,y,d){d=Math.min(d,x.length-1);let n=d+1,A=Array.from({length:n},()=>Array(n).fill(0)),b=Array(n).fill(0);
  for(let i=0;i<n;i++){for(let j=0;j<n;j++)A[i][j]=x.reduce((s,v)=>s+v**(i+j),0);b[i]=x.reduce((s,v,k)=>s+y[k]*v**i,0);}
@@ -196,7 +172,7 @@ $("selectRoi").onclick=async()=>{
    roiCanvas.onclick=e=>{let r=roiCanvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*video.videoWidth,y=(e.clientY-r.top)/r.height*video.videoHeight;roi={cx:x,cy:y,r:Math.min(video.videoWidth,video.videoHeight)*Number($("roiRatio").value)};drawROI();$("log").textContent="ROI 已设置。";}
  }else{
    work.width=video.videoWidth;work.height=video.videoHeight;let N=60,frames=[];
-   for(let i=0;i<N;i++){await seek(video.duration*i/(N-1));ctx.drawImage(video,0,0);let im=ctx.getImageData(0,0,work.width,work.height).data;let g=new Float32Array(work.width*work.height);for(let p=0,j=0;p<g.length;p++,j+=4)g[p]=.299*im[j]+.587*im[j+1]+.114*im[j+2];frames.push(g);}
+   for(let i=0;i<N;i++){await seek(video.duration*i/(N-1));ctx.drawImage(video,0,0);let im=ctx.getImageData(0,0,work.width,work.height).data;let g=new Float32Array(work.width*work.height);for(let p=0,j=0;p<g.length;p++,j+=4)g[p]=rgbToL(im[j],im[j+1],im[j+2]);frames.push(g);}
    let margin=.12*Math.min(work.width,work.height),max=-1,cx=work.width/2,cy=work.height/2;
    for(let y=Math.floor(margin);y<work.height-margin;y+=3)for(let x=Math.floor(margin);x<work.width-margin;x+=3){let idx=Math.floor(y)*work.width+Math.floor(x),m=0,v=0;for(let q=0;q<frames.length;q++)m+=frames[q][idx];m/=frames.length;for(let q=0;q<frames.length;q++)v+=(frames[q][idx]-m)**2;v/=frames.length;if(v>max){max=v;cx=x;cy=y;}}
    roi={cx,cy,r:Math.max(15,Math.min(Math.min(work.width,work.height)*Number($("roiRatio").value),cx-2,cy-2,work.width-cx-2,work.height-cy-2))};drawROI();$("log").textContent="自动 ROI 已完成。";
@@ -208,10 +184,14 @@ $("analyze").onclick=async()=>{
  if(!roi){$("selectRoi").click();return}
  work.width=video.videoWidth;work.height=video.videoHeight;
  let fps=Number($("fpsInput").value)||30,interval=Number($("sampleInterval").value)||15,step=interval/fps;
- let useBgSub = $("bgSub").value === "on";
  let sm=[],tt=[];$("log").textContent="开始逐帧采样……";
- for(let t=0;t<video.duration;t+=step){if(stopped)break;await seek(t);ctx.drawImage(video,0,0);sm.push(sampleGray(roi.cx,roi.cy,roi.r,useBgSub));tt.push(t);$("log").textContent=`逐帧采样：${Math.round(t/video.duration*100)}%`;}
+ for(let t=0;t<video.duration;t+=step){if(stopped)break;await seek(t);ctx.drawImage(video,0,0);sm.push(sampleSignal(roi.cx,roi.cy,roi.r));tt.push(t);$("log").textContent=`逐帧采样：${Math.round(t/video.duration*100)}%`;}
  if(stopped||sm.length<8){$("log").textContent="分析已停止或有效采样点不足。";return}
+ if($("temporalFilter").value==="median3" && sm.length>=3){
+   sm=sm.map((v,i)=>{let a=sm.slice(Math.max(0,i-1),Math.min(sm.length,i+2)).sort((x,y)=>x-y);return a[Math.floor(a.length/2)]});
+ }
+ let baseN=Math.max(3,Math.floor(sm.length*.15)),base=mean(sm.slice(0,baseN));
+ sm=sm.map(v=>v-base);
  let mu=mean(sm),sd=Math.sqrt(mean(sm.map(v=>(v-mu)**2))),valid=sm.map((v,i)=>Math.abs(v-mu)<3*sd?i:-1).filter(i=>i>=0);
  sm=valid.map(i=>sm[i]);tt=valid.map(i=>tt[i]);let diff=sm.slice(1).map((v,i)=>sm[i]-v),ft=tt.slice(1),ma=movingAvg(diff,Number($("movWin").value)||5);
  let coef=polyfit(ft,ma,Number($("fitDegree").value)||4),dense=[],fit=[];for(let i=0;i<500;i++){let t=ft[0]+(ft.at(-1)-ft[0])*i/499;dense.push(t);fit.push(polyval(coef,t));}
@@ -219,28 +199,25 @@ $("analyze").onclick=async()=>{
  for(let i=peak;i<final.length-1;i++)if(final[i]>=0&&final[i+1]<=0){zero=dense[i]-final[i]*(dense[i+1]-dense[i])/(final[i+1]-final[i]);break}
  if(zero===null)zero=dense.at(-1);let PRT=Math.max(0,zero-dense[peak]);
  $("peak").textContent=dense[peak].toFixed(2);$("zero").textContent=zero.toFixed(2);$("prt").textContent=PRT.toFixed(2);
-
- // 输出临床水肿分级结果
- let gradeInfo = getEdemaGrade(PRT);
- $("level").textContent = `${gradeInfo.label}（PRT = ${PRT.toFixed(2)} s）`;
- $("level").className = "badge " + gradeInfo.class;
-
+ $("level").textContent=clinicalTimeGrade(PRT);
+ $("depthIdx").textContent=Math.max(...final).toFixed(3);
+ $("stability").textContent=(sd<0.5?"高":"中/需复测");
+ $("npoints").textContent=sm.length;
  lastCurve={t:dense,y:final,peak:dense[peak],zero};
- drawPlot(lastCurve);saveRecord(PRT, gradeInfo.grade);
- $("log").textContent=`分析完成。
-有效采样点：${sm.length}
-3σ剔除异常点：${valid.length}
-ROI中心：(${roi.cx.toFixed(0)}, ${roi.cy.toFixed(0)})
-ROI半径：${roi.r.toFixed(0)} px
-背景补偿：${useBgSub?"开启":"关闭"}`;
+ drawPlot(lastCurve);saveRecord(PRT);
+ $("log").textContent=`分析完成。\n有效采样点：${sm.length}\n3σ剔除异常点：${valid.length}\nROI中心：(${roi.cx.toFixed(0)}, ${roi.cy.toFixed(0)})\nROI半径：${roi.r.toFixed(0)} px`;
 };
+function clinicalTimeGrade(prt){
+ if(prt<=0.5)return "0级 / 无持续性凹陷（时间参考）";
+ if(prt<=10)return "1+ / 轻度（时间参考）";
+ if(prt<=15)return "2+ / 中度（时间参考）";
+ return "3+ / 重度（时间参考）";
+}
 function drawPlot(d){let c=plot.getContext("2d"),W=plot.width,H=plot.height;c.clearRect(0,0,W,H);let min=Math.min(0,...d.y),max=Math.max(0,...d.y),x0=d.t[0],x1=d.t.at(-1),X=t=>50+(t-x0)/(x1-x0||1)*(W-70),Y=y=>H-45-(y-min)/(max-min||1)*(H-75);c.strokeStyle="#ccc";c.beginPath();c.moveTo(50,Y(0));c.lineTo(W-20,Y(0));c.stroke();c.strokeStyle="#111";c.lineWidth=3;c.beginPath();d.t.forEach((t,i)=>i?c.lineTo(X(t),Y(d.y[i])):c.moveTo(X(t),Y(d.y[i])));c.stroke();c.fillStyle="#c22";c.beginPath();c.arc(X(d.peak),Y(polyval(polyfit(d.t,d.y,4),d.peak)),7,0,7);c.fill();c.fillStyle="#176b3a";c.beginPath();c.arc(X(d.zero),Y(0),7,0,7);c.fill();c.fillStyle="#222";c.font="18px sans-serif";c.fillText("红：峰值起点",55,25);c.fillText("绿：过零点",230,25);}
-function saveRecord(prt, grade){let r={id:$("sid").value,group:$("group").value,volume:$("volume").value,force:$("force").value,press:$("press").value,prt:prt.toFixed(4),grade:grade,time:new Date().toLocaleString()};records.push(r);localStorage.setItem("edemaRecords",JSON.stringify(records));render();}
-function render(){ $("results").innerHTML=records.map(r=>`<tr><td>${r.id}</td><td>${r.group}</td><td>${r.volume}</td><td>${r.force}</td><td>${r.press}</td><td>${r.prt}</td><td><b>${r.grade||'—'}</b></td><td>${r.time}</td></tr>`).join("");}
+function saveRecord(prt){let r={id:$("sid").value,group:$("group").value,volume:$("volume").value,force:$("force").value,press:$("press").value,prt:prt.toFixed(4),depth_index:Math.max(...final).toFixed(6),clinical_grade:clinicalTimeGrade(PRT),time:new Date().toLocaleString()};records.push(r);localStorage.setItem("edemaRecords",JSON.stringify(records));render();}
+function render(){ $("results").innerHTML=records.map(r=>`<tr><td>${r.id}</td><td>${r.group}</td><td>${r.volume}</td><td>${r.force}</td><td>${r.press}</td><td>${r.prt}</td><td>${r.clinical_grade||''}</td><td>${r.time}</td></tr>`).join("");}
 render();
-$("csv").onclick=()=>{let head="id,group,volume_ml,force_g,press_s,PRT_s,clinical_grade,time
-",body=records.map(r=>[r.id,r.group,r.volume,r.force,r.press,r.prt,r.grade||'',r.time].map(x=>`"${String(x).replaceAll('"','""')}"`).join(",")).join("
-");download(new Blob(["﻿"+head+body],{type:"text/csv"}),"edema_results.csv");};
+$("csv").onclick=()=>{let head="id,group,volume_ml,force_g,press_s,PRT_s,clinical_grade,depth_index,time\n",body=records.map(r=>[r.id,r.group,r.volume,r.force,r.press,r.prt,r.clinical_grade||"",r.depth_index||"",r.time].map(x=>`"${String(x).replaceAll('"','""')}"`).join(",")).join("\n");download(new Blob(["\ufeff"+head+body],{type:"text/csv"}),"edema_results.csv");};
 $("png").onclick=()=>{if(!lastCurve){alert("请先完成分析");return}plot.toBlob(b=>download(b,"edema_curve.png"));};
 $("clear").onclick=()=>{if(confirm("确定清空本机全部实验记录？")){records=[];localStorage.removeItem("edemaRecords");render();}};
 function download(blob,name){let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
